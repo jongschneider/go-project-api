@@ -3,6 +3,8 @@ package router
 import (
 	"net/http"
 
+	"github.com/jongschneider/go-project/router/routes/v1"
+
 	"github.com/gorilla/mux"
 	"github.com/jongschneider/go-project/router/routes"
 )
@@ -21,13 +23,10 @@ func New() *RouteHandler {
 
 	router.Use(routes.Middleware)
 
-	for _, route := range routes.GetRoutes() {
-		RegisterRoute(router, route)
-	}
+	RegisterRoutes(router, routes.GetRoutes())
+	RegisterSubRoutes(router, v1.GetRoutes())
 
-	return &RouteHandler{
-		Router: router,
-	}
+	return &RouteHandler{router}
 }
 
 // RegisterRoute registers a route on a *mux.Router
@@ -36,5 +35,28 @@ func RegisterRoute(router *mux.Router, route routes.Route) {
 		Methods(route.Method).
 		Path(route.Pattern).
 		Name(route.Name).
-		Handler(route.Handler)
+		Handler(route.HandlerFunc)
+}
+
+// RegisterRoutes registers routes on a *mux.Router
+func RegisterRoutes(router *mux.Router, routes routes.Routes) {
+	for _, route := range routes {
+		RegisterRoute(router, route)
+	}
+}
+
+// RegisterSubRoute registers a subRoute on a *mux.Router
+func RegisterSubRoute(router *mux.Router, path string, subRoute routes.SubRoute) {
+	subRouter := router.PathPrefix(path).Subrouter()
+	subRouter.Use(subRoute.Middleware)
+	for _, route := range subRoute.Routes {
+		RegisterRoute(subRouter, route)
+	}
+}
+
+// RegisterSubRoutes registers subRoutes on a *mux.Router
+func RegisterSubRoutes(router *mux.Router, subRoutes routes.SubRoutes) {
+	for path, subRoute := range subRoutes {
+		RegisterSubRoute(router, path, subRoute)
+	}
 }
