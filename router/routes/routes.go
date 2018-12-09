@@ -40,11 +40,17 @@ func Middleware(next http.Handler) http.Handler {
 // GetRoutes get the routes
 func GetRoutes() Routes {
 	return Routes{
-		Route{
+		{
 			Name:        "HealthCheck",
 			Method:      http.MethodGet,
 			Pattern:     "/health",
 			HandlerFunc: Health(),
+		},
+		{
+			Name:        "Login",
+			Method:      http.MethodPost,
+			Pattern:     "/auth/login",
+			HandlerFunc: Login(),
 		},
 	}
 }

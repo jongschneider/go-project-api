@@ -19,7 +19,7 @@ func GetRoutes() routes.SubRoutes {
 	subRoutes.Add("/v1", routes.SubRoute{
 		Routes: routes.Routes{
 			{
-				Name:        "V1HealthRoute",
+				Name:        "v1HealthCheck",
 				Method:      http.MethodGet,
 				Pattern:     "/health",
 				HandlerFunc: Health(),
