@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/jongschneider/go-project/router"
 )
 
 // Server represents the server that supports our api
@@ -23,13 +27,25 @@ func (s *Server) Start() {
 // New creates a new server
 func New(port int) *Server {
 	addr := fmt.Sprintf(":%d", port)
+	r := router.New()
+
+	handler := handlers.LoggingHandler(os.Stdout, handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Origin", "Cache-Control", "X-App-Token"}),
+		handlers.ExposedHeaders([]string{}),
+		handlers.MaxAge(1000),
+		handlers.AllowCredentials(),
+	)(r.Router))
+
+	handler = handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(handler)
 
 	return &Server{
 		Port: port,
 		Addr: addr,
 		HTTPServer: &http.Server{
 			Addr:           addr,
-			Handler:        nil,
+			Handler:        handler,
 			ReadTimeout:    10 * time.Second,
 			WriteTimeout:   10 * time.Second,
 			MaxHeaderBytes: 1 << 20,
