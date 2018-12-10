@@ -3,6 +3,10 @@ package main
 import (
 	"log"
 
+	"github.com/jmoiron/sqlx"
+
+	"github.com/jongschneider/go-project/db"
+
 	_ "github.com/go-sql-driver/mysql" // provides the mysql driver for sqlx
 	"github.com/joho/godotenv"
 	"github.com/jongschneider/go-project/server"
@@ -37,18 +41,21 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		logrus.Info(errors.Wrap(err, "godotenv"))
 	}
-	// dbConfig, err := db.Load()
-	// if err != nil {
-	// 	log.Fatalln(errors.Wrap(err, "get dbConfig"))
-	// }
-	// s := server.New(port)
-	// database, err := db.Connect(dbConfig)
-	// if err != nil {
-	// 	log.Fatalln(errors.Wrap(err, "connect to db"))
-	// }
-	s := server.New(cfg.Port)
-	s.Start()
+	// database, err := GetDB()
+	server.New(cfg.Port).Start()
 	log.Println("Application has run!")
 }
 
-// func getClient()
+// GetDB gets a sqlx DB
+func GetDB() (*sqlx.DB, error) {
+	dbConfig, err := db.Load()
+	if err != nil {
+		return nil, (errors.Wrap(err, "get dbConfig"))
+	}
+	database, err := db.Connect(dbConfig)
+	if err != nil {
+		return nil, (errors.Wrap(err, "connect to db"))
+	}
+
+	return database, nil
+}
